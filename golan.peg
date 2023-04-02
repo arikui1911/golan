@@ -1,0 +1,33 @@
+package golan
+
+type Parser Peg {
+	ASTBuilder
+}
+
+root <- expression EOT
+
+EOT <- !.
+
+expression <- assign / additive
+
+assign <- identifier _ '=' _ expression		{ p.PushAssign() }
+
+additive <- multitive (
+	_ '+' _ multitive	{ p.PushBinOp("+") } /
+	_ '-' _ multitive	{ p.PushBinOp("-") }
+)*
+
+multitive <- primary (
+	_ '*' _ primary	{ p.PushBinOp("*") } /
+	_ '/' _ primary	{ p.PushBinOp("/") } /
+	_ '%' _ primary	{ p.PushBinOp("%") }
+)*
+
+primary <-
+	<[0-9]+>	{ p.PushIntLiteral(begin, end, text) }
+
+identifier <- <[_a-zA-Z][_a-zA-Z0-9]*>	{ p.PushIdentifier(begin, end, text) }
+
+_ <- [ \t\r\n]*
+
+
