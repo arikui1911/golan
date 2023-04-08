@@ -14,6 +14,7 @@ type ASTBuilder struct {
 
 func (b *ASTBuilder) ASTBuilderInit(buffer string) {
 	b.buffer = buffer
+	b.push(&Block{[]Node{}})
 }
 
 func (b *ASTBuilder) Err() error { return b.lastErr }
@@ -35,6 +36,9 @@ func (b *ASTBuilder) Recover(e any) {
 }
 
 func (b *ASTBuilder) Finish() Node {
+	if len(b.stack) == 0 {
+		return nil
+	}
 	return b.pop()
 }
 
@@ -49,6 +53,35 @@ func (b *ASTBuilder) pop() Node {
 	r := b.stack[len(b.stack)-1]
 	b.stack = b.stack[:len(b.stack)-1]
 	return r
+}
+
+func (b *ASTBuilder) PushBlock() {
+	b.push(&Block{[]Node{}})
+}
+
+func (b *ASTBuilder) PushWhile(beg int) {
+	fl, fc := calcPosition(b.buffer, beg)
+	b.push(&While{position: &Position{fl, fc, 0, 0}})
+}
+
+func (b *ASTBuilder) CompleteWhile() {
+	body := b.pop()
+	cond := b.pop()
+	w := b.pop().(*While)
+	current := b.pop().(*Block)
+	w.position.LastLineno = body.Position().LastLineno
+	w.position.LastColumn = body.Position().LastColumn
+	w.Condition = cond
+	w.Body = body
+	current.Add(w)
+	b.push(current)
+}
+
+func (b *ASTBuilder) PushExpressionStatement() {
+	x := b.pop()
+	block := b.pop().(*Block)
+	block.Add(x)
+	b.push(block)
 }
 
 func (b *ASTBuilder) PushAssign() {
@@ -69,6 +102,18 @@ func (b *ASTBuilder) PushBinOp(op string) {
 		y.Position().LastLineno, y.Position().LastColumn,
 	}
 	switch op {
+	case "==":
+		b.push(&Equal{p, x, y})
+	case "!=":
+		b.push(&NotEqual{p, x, y})
+	case ">=":
+		b.push(&GreaterThanEqual{p, x, y})
+	case "<=":
+		b.push(&LessThanEqual{p, x, y})
+	case ">":
+		b.push(&GreaterThan{p, x, y})
+	case "<":
+		b.push(&LessThan{p, x, y})
 	case "+":
 		b.push(&Addition{p, x, y})
 	case "-":
@@ -82,6 +127,30 @@ func (b *ASTBuilder) PushBinOp(op string) {
 	default:
 		panic("must not happen")
 	}
+}
+
+func (b *ASTBuilder) PushUnaryOp(beg int, _ int, op string) {
+	fl, fc := calcPosition(b.buffer, beg)
+	switch op {
+	case "+":
+		b.push(&Plus{&Position{fl, fc, 0, 0}, nil})
+	case "-":
+		b.push(&Minus{&Position{fl, fc, 0, 0}, nil})
+	case "!":
+		b.push(&Not{&Position{fl, fc, 0, 0}, nil})
+	default:
+		panic("must not happen")
+	}
+}
+
+func (b *ASTBuilder) CompleteUnary() {
+	x := b.pop()
+	u := b.pop()
+	p := u.Position()
+	p.LastLineno = x.Position().LastLineno
+	p.LastColumn = x.Position().LastColumn
+	u.(Unary).Complete(p, x)
+	b.push(u)
 }
 
 func (b *ASTBuilder) PushIntLiteral(beg int, end int, src string) {

@@ -8,7 +8,19 @@ import (
 )
 
 func main() {
-	p := &golan.Parser{Buffer: `hoge = piyo = 123 + 456 * 789`}
+	src := `
+# comment
+hoge = piyo = 111 == -123 + +456 * !789
+
+foo = 100
+
+while (foo == 100) {
+	bar = 200
+}
+
+`
+
+	p := &golan.Parser{Buffer: src}
 	defer func() {
 		p.Recover(recover())
 		if p.Err() != nil {

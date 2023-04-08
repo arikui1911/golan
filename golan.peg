@@ -4,30 +4,61 @@ type Parser Peg {
 	ASTBuilder
 }
 
-root <- expression EOT
+root <- statements EOT
 
 EOT <- !.
 
-expression <- assign / additive
+statements <- ((_ comment? nl)* statement)* (_ comment? nl)*
+
+statement <- _ (
+	expression _ comment? nl { p.PushExpressionStatement() } /
+	<'while'> { p.PushWhile(begin) } _ expression _ '{' { p.PushBlock() } statements '}' { p.CompleteWhile() }
+)
+
+expression <- assign / equality
 
 assign <- identifier _ '=' _ expression		{ p.PushAssign() }
+
+equality <- compare (
+	_ '==' _ compare	{ p.PushBinOp("==") } /
+	_ '!=' _ compare	{ p.PushBinOp("!=") }
+)*
+
+compare <- additive (
+	_ '<=' _ additive	{ p.PushBinOp("<=") } /
+	_ '>=' _ additive	{ p.PushBinOp(">=") } /
+	_ '<' _ additive	{ p.PushBinOp("<") } /
+	_ '>' _ additive	{ p.PushBinOp(">") }
+)*
 
 additive <- multitive (
 	_ '+' _ multitive	{ p.PushBinOp("+") } /
 	_ '-' _ multitive	{ p.PushBinOp("-") }
 )*
 
-multitive <- primary (
-	_ '*' _ primary	{ p.PushBinOp("*") } /
-	_ '/' _ primary	{ p.PushBinOp("/") } /
-	_ '%' _ primary	{ p.PushBinOp("%") }
+multitive <- factor (
+	_ '*' _ factor	{ p.PushBinOp("*") } /
+	_ '/' _ factor	{ p.PushBinOp("/") } /
+	_ '%' _ factor	{ p.PushBinOp("%") }
 )*
 
+factor <- unary / primary
+
+unary <- (
+	<'-'> { p.PushUnaryOp(begin, end, "-") } /
+	<'+'> { p.PushUnaryOp(begin, end, "+") } /
+	<'!'> { p.PushUnaryOp(begin, end, "!") }
+) _ factor { p.CompleteUnary() }
+
 primary <-
-	<[0-9]+>	{ p.PushIntLiteral(begin, end, text) }
+	'(' _ expression _ ')' /
+	<[0-9]+>	{ p.PushIntLiteral(begin, end, text) } /
+	identifier
 
 identifier <- <[_a-zA-Z][_a-zA-Z0-9]*>	{ p.PushIdentifier(begin, end, text) }
 
-_ <- [ \t\r\n]*
+_ <- [ \t]*
 
+nl <- [\r\n]+
 
+comment <- '#' [^\r\n]*
