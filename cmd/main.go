@@ -18,6 +18,8 @@ while (foo == 100) {
 	bar = 200
 }
 
+print(100 + 200, 300)
+
 `
 
 	p := &golan.Parser{Buffer: src}

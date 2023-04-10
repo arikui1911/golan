@@ -8,9 +8,9 @@ root <- statements EOT
 
 EOT <- !.
 
-statements <- ((_ comment? nl)* statement)* (_ comment? nl)*
+statements <- (sp statement)* sp
 
-statement <- _ (
+statement <- (
 	expression _ comment? nl { p.PushExpressionStatement() } /
 	<'while'> { p.PushWhile(begin) } _ expression _ '{' { p.PushBlock() } statements '}' { p.CompleteWhile() }
 )
@@ -42,13 +42,17 @@ multitive <- factor (
 	_ '%' _ factor	{ p.PushBinOp("%") }
 )*
 
-factor <- unary / primary
+factor <- unary / postfix
 
 unary <- (
 	<'-'> { p.PushUnaryOp(begin, end, "-") } /
 	<'+'> { p.PushUnaryOp(begin, end, "+") } /
 	<'!'> { p.PushUnaryOp(begin, end, "!") }
 ) _ factor { p.CompleteUnary() }
+
+postfix <- primary (
+    _ '(' (sp expression _ ',')* sp expression? sp ')' _
+)*
 
 primary <-
 	'(' _ expression _ ')' /
@@ -62,3 +66,6 @@ _ <- [ \t]*
 nl <- [\r\n]+
 
 comment <- '#' [^\r\n]*
+
+sp <- (_ comment? nl _)*
+
