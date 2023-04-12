@@ -18,7 +18,14 @@ while (foo == 100) {
 	bar = 200
 }
 
+print()
+print(666)
 print(100 + 200, 300)
+
+print(
+  1,
+  2
+)
 
 `
 

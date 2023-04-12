@@ -316,3 +316,21 @@ func (i *Identifier) dump(w io.Writer, n int) {
 	indent(w, n)
 	fmt.Fprintf(w, "%T:%v: %v\n", i, i.position, i.Name)
 }
+
+type Apply struct {
+    position *Position
+    function Node
+    arguments []Node
+}
+
+func (a *Apply) Position() *Position { return a.position }
+
+func (a *Apply) dump(w io.Writer, n int) {
+    indent(w, n)
+	fmt.Fprintf(w, "%T:%v:\n", a, a.position)
+    a.function.dump(w, n+1)
+    for _, x := range a.arguments {
+        x.dump(w, n+1)
+    }
+}
+

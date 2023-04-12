@@ -166,6 +166,35 @@ func (b *ASTBuilder) PushIdentifier(beg int, end int, src string) {
 	b.push(&Identifier{&Position{fl, fc, ll, lc}, src})
 }
 
+func (b *ASTBuilder) PushApply() {
+    f := b.pop()
+    b.push(&Apply{
+        position: &Position{f.Position().FirstLineno, f.Position().FirstColumn, 0, 0},
+        function: f,
+        arguments: []Node{},
+    })
+}
+
+func (b *ASTBuilder) CompleteApply(end int) {
+    var a *Apply
+    buf := []Node{}
+    for {
+        x := b.pop()
+        if v, ok := x.(*Apply); ok {
+            a = v
+            break
+        }
+        buf = append(buf, x)
+    }
+    ll, lc := calcPosition(b.buffer, end)
+    a.position.LastLineno = ll
+    a.position.LastColumn = lc
+    for i := 0; i < len(buf); i++ {
+        a.arguments = append(a.arguments, buf[len(buf)-1-i])
+    }
+    b.push(a)
+}
+
 func calcPosition(src string, pos int) (int, int) {
 	a := strings.Split(src[:pos], "\n")
 	lineno := len(a) - 1

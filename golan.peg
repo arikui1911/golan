@@ -51,7 +51,9 @@ unary <- (
 ) _ factor { p.CompleteUnary() }
 
 postfix <- primary (
-    _ '(' (sp expression _ ',')* sp expression? sp ')' _
+    _ '(' { p.PushApply() } sp _
+    (expression (_ ',' (_ comment nl)* _ expression)*)?
+    (_ comment nl)* _ <')'> { p.CompleteApply(end) } _
 )*
 
 primary <-
