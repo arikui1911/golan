@@ -52,8 +52,8 @@ unary <- (
 
 postfix <- primary (
     _ '(' { p.PushApply() } sp _
-    (expression (_ ',' (_ comment nl)* _ expression)*)?
-    (_ comment nl)* _ <')'> { p.CompleteApply(end) } _
+    (expression (_ ',' sp _ expression)*)?
+    sp _ <')'> { p.CompleteApply(end) } _
 )*
 
 primary <-
