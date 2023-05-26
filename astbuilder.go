@@ -77,6 +77,24 @@ func (b *ASTBuilder) CompleteWhile() {
 	b.push(current)
 }
 
+func (b *ASTBuilder) PushIf(beg int) {
+	fl, fc := calcPosition(b.buffer, beg)
+	b.push(&If{position: &Position{fl, fc, 0, 0}})
+}
+
+func (b *ASTBuilder) CompleteIf() {
+	then := b.pop()
+	test := b.pop()
+	i := b.pop().(*If)
+	current := b.pop().(*Block)
+	i.position.LastLineno = then.Position().LastLineno
+	i.position.LastColumn = then.Position().LastColumn
+	i.Test = test
+	i.Then = then
+	current.Add(i)
+	b.push(current)
+}
+
 func (b *ASTBuilder) PushExpressionStatement() {
 	x := b.pop()
 	block := b.pop().(*Block)
@@ -167,32 +185,32 @@ func (b *ASTBuilder) PushIdentifier(beg int, end int, src string) {
 }
 
 func (b *ASTBuilder) PushApply() {
-    f := b.pop()
-    b.push(&Apply{
-        position: &Position{f.Position().FirstLineno, f.Position().FirstColumn, 0, 0},
-        function: f,
-        arguments: []Node{},
-    })
+	f := b.pop()
+	b.push(&Apply{
+		position:  &Position{f.Position().FirstLineno, f.Position().FirstColumn, 0, 0},
+		function:  f,
+		arguments: []Node{},
+	})
 }
 
 func (b *ASTBuilder) CompleteApply(end int) {
-    var a *Apply
-    buf := []Node{}
-    for {
-        x := b.pop()
-        if v, ok := x.(*Apply); ok {
-            a = v
-            break
-        }
-        buf = append(buf, x)
-    }
-    ll, lc := calcPosition(b.buffer, end)
-    a.position.LastLineno = ll
-    a.position.LastColumn = lc
-    for i := 0; i < len(buf); i++ {
-        a.arguments = append(a.arguments, buf[len(buf)-1-i])
-    }
-    b.push(a)
+	var a *Apply
+	buf := []Node{}
+	for {
+		x := b.pop()
+		if v, ok := x.(*Apply); ok {
+			a = v
+			break
+		}
+		buf = append(buf, x)
+	}
+	ll, lc := calcPosition(b.buffer, end)
+	a.position.LastLineno = ll
+	a.position.LastColumn = lc
+	for i := 0; i < len(buf); i++ {
+		a.arguments = append(a.arguments, buf[len(buf)-1-i])
+	}
+	b.push(a)
 }
 
 func calcPosition(src string, pos int) (int, int) {

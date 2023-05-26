@@ -76,8 +76,37 @@ func (w *While) Position() *Position { return w.position }
 func (w *While) dump(o io.Writer, n int) {
 	indent(o, n)
 	fmt.Fprintf(o, "%T:%v\n", w, w.position)
+	indent(o, n+1)
+	fmt.Fprintln(o, "[condition]")
 	w.Condition.dump(o, n+1)
+	indent(o, n+1)
+	fmt.Fprintln(o, "[body]")
 	w.Body.dump(o, n+1)
+}
+
+type If struct {
+	position *Position
+	Test     Node
+	Then     Node
+	Alt      Node
+}
+
+func (i *If) Position() *Position { return i.position }
+
+func (i *If) dump(o io.Writer, n int) {
+	indent(o, n)
+	fmt.Fprintf(o, "%T:%v\n", i, i.position)
+	indent(o, n+1)
+	fmt.Fprintln(o, "[test]")
+	i.Test.dump(o, n+1)
+	indent(o, n+1)
+	fmt.Fprintln(o, "[then]")
+	i.Then.dump(o, n+1)
+	if i.Alt != nil {
+		indent(o, n+1)
+		fmt.Fprintln(o, "[alt]")
+		i.Alt.dump(o, n+1)
+	}
 }
 
 type Assign struct {
@@ -91,14 +120,22 @@ func (a *Assign) Position() *Position { return a.position }
 func (a *Assign) dump(w io.Writer, n int) {
 	indent(w, n)
 	fmt.Fprintf(w, "%T:%v\n", a, a.position)
+	indent(w, n+1)
+	fmt.Fprintln(w, "[destination]")
 	a.Destination.dump(w, n+1)
+	indent(w, n+1)
+	fmt.Fprintln(w, "[expression]")
 	a.Expression.dump(w, n+1)
 }
 
 func dumpBinary(w io.Writer, n int, node Node, l Node, r Node) {
 	indent(w, n)
 	fmt.Fprintf(w, "%T:%v\n", node, node.Position())
+	indent(w, n+1)
+	fmt.Fprintln(w, "[left]")
 	l.dump(w, n+1)
+	indent(w, n+1)
+	fmt.Fprintln(w, "[right]")
 	r.dump(w, n+1)
 }
 
@@ -318,19 +355,18 @@ func (i *Identifier) dump(w io.Writer, n int) {
 }
 
 type Apply struct {
-    position *Position
-    function Node
-    arguments []Node
+	position  *Position
+	function  Node
+	arguments []Node
 }
 
 func (a *Apply) Position() *Position { return a.position }
 
 func (a *Apply) dump(w io.Writer, n int) {
-    indent(w, n)
+	indent(w, n)
 	fmt.Fprintf(w, "%T:%v:\n", a, a.position)
-    a.function.dump(w, n+1)
-    for _, x := range a.arguments {
-        x.dump(w, n+1)
-    }
+	a.function.dump(w, n+1)
+	for _, x := range a.arguments {
+		x.dump(w, n+1)
+	}
 }
-

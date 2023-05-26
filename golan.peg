@@ -12,8 +12,15 @@ statements <- (sp statement)* sp
 
 statement <- (
 	expression _ comment? nl { p.PushExpressionStatement() } /
-	<'while'> { p.PushWhile(begin) } _ expression _ '{' { p.PushBlock() } statements '}' { p.CompleteWhile() }
+	while /
+	if
 )
+
+while <-
+	<'while'> { p.PushWhile(begin) } _ expression _ '{' { p.PushBlock() } statements '}' { p.CompleteWhile() }
+
+if <-
+	<'if'> { p.PushIf(begin) } _ expression _ '{' { p.PushBlock() } statements '}' { p.CompleteIf() }
 
 expression <- assign / equality
 
@@ -50,11 +57,15 @@ unary <- (
 	<'!'> { p.PushUnaryOp(begin, end, "!") }
 ) _ factor { p.CompleteUnary() }
 
-postfix <- primary (
-    _ '(' { p.PushApply() } sp _
-    (expression (_ ',' sp _ expression)*)?
-    sp _ <')'> { p.CompleteApply(end) } _
-)*
+postfix <- primary funcall*
+
+funcall <- ( _
+	'(' { p.PushApply() } sp _ <')'> { p.CompleteApply(end) } /	
+	'(' { p.PushApply() } sp _ expression
+	(_ ',' sp _ expression)*
+	(_ ',')?
+	sp _ <')'> { p.CompleteApply(end) }
+)
 
 primary <-
 	'(' _ expression _ ')' /

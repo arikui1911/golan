@@ -18,14 +18,26 @@ while (foo == 100) {
 	bar = 200
 }
 
-print()
-print(666)
-print(100 + 200, 300)
+if foo >= 10 {
+	bar = 20
+}
 
-print(
-  1,
-  2
-)
+if foo <= 11 {
+	bar = 22
+} else {
+	bar = 33
+}
+
+#print()
+#print(666)
+#print(100 + 200, 300)
+
+#print(
+#  1,
+#  2,
+#)
+
+#print(1)(2)()
 
 `
 
