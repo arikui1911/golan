@@ -39,10 +39,15 @@ type Node interface {
 }
 
 type Block struct {
+	position   *Position
 	statements []Node
 }
 
 func (b *Block) Position() *Position {
+	if b.position != nil {
+		return b.position
+	}
+
 	var p Position
 	if len(b.statements) > 0 {
 		p.FirstLineno = b.statements[0].Position().FirstLineno

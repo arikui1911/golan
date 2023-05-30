@@ -2,6 +2,7 @@ package golan
 
 import (
 	"errors"
+	"io"
 	"strconv"
 	"strings"
 )
@@ -14,7 +15,7 @@ type ASTBuilder struct {
 
 func (b *ASTBuilder) ASTBuilderInit(buffer string) {
 	b.buffer = buffer
-	b.push(&Block{[]Node{}})
+	b.push(&Block{statements: []Node{}})
 }
 
 func (b *ASTBuilder) Err() error { return b.lastErr }
@@ -55,8 +56,18 @@ func (b *ASTBuilder) pop() Node {
 	return r
 }
 
-func (b *ASTBuilder) PushBlock() {
-	b.push(&Block{[]Node{}})
+func (b *ASTBuilder) PushBlock(beg int) {
+	fl, fc := calcPosition(b.buffer, beg)
+	b.push(&Block{
+		position:   &Position{fl, fc, 0, 0},
+		statements: []Node{},
+	})
+}
+
+func (b *ASTBuilder) CompleteBlock(end int) {
+	block := b.pop().(*Block)
+	block.position.LastLineno, block.position.LastColumn = calcPosition(b.buffer, end-1)
+	b.push(block)
 }
 
 func (b *ASTBuilder) PushWhile(beg int) {
@@ -77,21 +88,124 @@ func (b *ASTBuilder) CompleteWhile() {
 	b.push(current)
 }
 
-func (b *ASTBuilder) PushIf(beg int) {
+type ifPart struct {
+	position *Position
+	test     Node
+	then     Node
+}
+
+func (p *ifPart) Position() *Position { return p.position }
+
+func (*ifPart) dump(o io.Writer, n int) { panic("ifPart is temprary node object") }
+
+func (b *ASTBuilder) PushIfPart(beg int) {
 	fl, fc := calcPosition(b.buffer, beg)
-	b.push(&If{position: &Position{fl, fc, 0, 0}})
+	b.push(&ifPart{position: &Position{fl, fc, 0, 0}})
+}
+
+func (b *ASTBuilder) CompleteIfPart() {
+	then := b.pop()
+	test := b.pop()
+	p := b.pop().(*ifPart)
+	p.position.LastLineno = then.Position().LastLineno
+	p.position.LastColumn = then.Position().LastColumn
+	p.test = test
+	p.then = then
+	b.push(p)
+}
+
+type elsifPart struct {
+	position *Position
+	test     Node
+	then     Node
+}
+
+func (p *elsifPart) Position() *Position { return p.position }
+
+func (*elsifPart) dump(o io.Writer, n int) { panic("elsifPart is temprary node object") }
+
+func (b *ASTBuilder) PushElsifPart(beg int) {
+	fl, fc := calcPosition(b.buffer, beg)
+	b.push(&elsifPart{position: &Position{fl, fc, 0, 0}})
+}
+
+func (b *ASTBuilder) CompleteElsifPart() {
+	then := b.pop()
+	test := b.pop()
+	p := b.pop().(*elsifPart)
+	p.position.LastLineno = then.Position().LastLineno
+	p.position.LastColumn = then.Position().LastColumn
+	p.test = test
+	p.then = then
+	b.push(p)
+}
+
+type elsePart struct {
+	position *Position
+	then     Node
+}
+
+func (p *elsePart) Position() *Position { return p.position }
+
+func (*elsePart) dump(o io.Writer, n int) { panic("elsePart is temprary node object") }
+
+func (b *ASTBuilder) PushElsePart(beg int) {
+	fl, fc := calcPosition(b.buffer, beg)
+	b.push(&elsePart{position: &Position{fl, fc, 0, 0}})
+}
+
+func (b *ASTBuilder) CompleteElsePart() {
+	then := b.pop()
+	p := b.pop().(*elsePart)
+	p.position.LastLineno = then.Position().LastLineno
+	p.position.LastColumn = then.Position().LastColumn
+	p.then = then
+	b.push(p)
 }
 
 func (b *ASTBuilder) CompleteIf() {
-	then := b.pop()
-	test := b.pop()
-	i := b.pop().(*If)
+	var alt Node
+
+	last := b.pop()
+	if p, ok := last.(*elsePart); ok {
+		alt = p.then
+	} else {
+		b.push(last)
+	}
+
+	for {
+		last = b.pop()
+		p, ok := last.(*elsifPart)
+		if !ok {
+			b.push(last)
+			break
+		}
+		pos := *p.position
+		if alt != nil {
+			pos.LastLineno = alt.Position().LastLineno
+			pos.LastColumn = alt.Position().LastColumn
+		}
+		alt = &If{
+			position: &pos,
+			Test:     p.test,
+			Then:     p.then,
+			Alt:      alt,
+		}
+	}
+
+	p := b.pop().(*ifPart)
+	pos := *p.position
+	if alt != nil {
+		pos.LastLineno = alt.Position().LastLineno
+		pos.LastColumn = alt.Position().LastColumn
+	}
 	current := b.pop().(*Block)
-	i.position.LastLineno = then.Position().LastLineno
-	i.position.LastColumn = then.Position().LastColumn
-	i.Test = test
-	i.Then = then
-	current.Add(i)
+	current.Add(&If{
+		position: &pos,
+		Test:     p.test,
+		Then:     p.then,
+		Alt:      alt,
+	})
 	b.push(current)
 }
 
@@ -204,7 +318,7 @@ func (b *ASTBuilder) CompleteApply(end int) {
 		}
 		buf = append(buf, x)
 	}
-	ll, lc := calcPosition(b.buffer, end)
+	ll, lc := calcPosition(b.buffer, end-1)
 	a.position.LastLineno = ll
 	a.position.LastColumn = lc
 	for i := 0; i < len(buf); i++ {

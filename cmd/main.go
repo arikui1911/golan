@@ -15,29 +15,46 @@ hoge = piyo = 111 == -123 + +456 * !789
 foo = 100
 
 while (foo == 100) {
-	bar = 200
+    bar = 200
 }
 
 if foo >= 10 {
-	bar = 20
+    bar = 20
 }
 
-if foo <= 11 {
-	bar = 22
+if (
+    foo <= 11
+)
+{
+    bar = 22
+}
+else
+{
+    bar = 33
+}
+
+if hoge > 100 {
+	piyo = 200
+} elsif huga > 300 {
+	piyo = 400
+} elsif hoge > 500 {
+	piyo = 600
 } else {
-	bar = 33
+	piyo = 700
 }
 
-#print()
-#print(666)
-#print(100 + 200, 300)
+{
+	print()
+	print(666)
+	print(100 + 200, 300)
 
-#print(
-#  1,
-#  2,
-#)
+	print(
+	1,
+	2,
+	)
 
-#print(1)(2)()
+	print(1)(2)()
+}
 
 `
 

@@ -16,11 +16,16 @@ statement <- (
 	if
 )
 
+block <- <'{'> { p.PushBlock(begin) } statements <'}'> { p.CompleteBlock(end) }
+
 while <-
-	<'while'> { p.PushWhile(begin) } _ expression _ '{' { p.PushBlock() } statements '}' { p.CompleteWhile() }
+	<'while'> { p.PushWhile(begin) } _ expression _ block { p.CompleteWhile() }
 
 if <-
-	<'if'> { p.PushIf(begin) } _ expression _ '{' { p.PushBlock() } statements '}' { p.CompleteIf() }
+	<'if'> { p.PushIfPart(begin) }  _ expression _ sp _ block { p.CompleteIfPart() }
+	(sp _ <'elsif'> { p.PushElsifPart(begin) } _ expression _ sp _ block { p.CompleteElsifPart() })*
+	(sp _ <'else'> { p.PushElsePart(begin) } _ sp _ block { p.CompleteElsePart() })?
+	{ p.CompleteIf() }
 
 expression <- assign / equality
 
@@ -68,7 +73,7 @@ funcall <- ( _
 )
 
 primary <-
-	'(' _ expression _ ')' /
+	'(' _ sp _ expression _ sp _ ')' /
 	<[0-9]+>	{ p.PushIntLiteral(begin, end, text) } /
 	identifier
 
