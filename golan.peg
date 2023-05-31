@@ -8,7 +8,7 @@ root <- statements EOT
 
 EOT <- !.
 
-statements <- (sp statement)* sp
+statements <- (_ sp _ statement)* _ sp _
 
 statement <- (
 	expression _ comment? nl { p.PushExpressionStatement() } /

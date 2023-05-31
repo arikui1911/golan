@@ -556,7 +556,7 @@ func (p *Parser) Init(options ...func(*Parser) error) error {
 			position, tokenIndex = position2, tokenIndex2
 			return false
 		},
-		/* 2 statements <- <((sp statement)* sp)> */
+		/* 2 statements <- <((_ sp _ statement)* _ sp _)> */
 		func() bool {
 			position5, tokenIndex5 := position, tokenIndex
 			{
@@ -564,7 +564,13 @@ func (p *Parser) Init(options ...func(*Parser) error) error {
 			l7:
 				{
 					position8, tokenIndex8 := position, tokenIndex
+					if !_rules[rule_]() {
+						goto l8
+					}
 					if !_rules[rulesp]() {
+						goto l8
+					}
+					if !_rules[rule_]() {
 						goto l8
 					}
 					if !_rules[rulestatement]() {
@@ -574,7 +580,13 @@ func (p *Parser) Init(options ...func(*Parser) error) error {
 				l8:
 					position, tokenIndex = position8, tokenIndex8
 				}
+				if !_rules[rule_]() {
+					goto l5
+				}
 				if !_rules[rulesp]() {
+					goto l5
+				}
+				if !_rules[rule_]() {
 					goto l5
 				}
 				add(rulestatements, position6)

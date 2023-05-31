@@ -43,18 +43,17 @@ if hoge > 100 {
 	piyo = 700
 }
 
-{
-	print()
-	print(666)
-	print(100 + 200, 300)
 
-	print(
-	1,
-	2,
-	)
+print()
+    print(666)
+print(100 + 200, 300)
 
-	print(1)(2)()
-}
+print(
+    1,
+    2,
+)
+
+print(1)(2)()
 
 `
 
