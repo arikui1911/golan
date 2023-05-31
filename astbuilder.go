@@ -70,6 +70,13 @@ func (b *ASTBuilder) CompleteBlock(end int) {
 	b.push(block)
 }
 
+func (b *ASTBuilder) PopBlock() {
+    block := b.pop().(*Block)
+	current := b.pop().(*Block)
+    current.Add(block)
+    b.push(current)
+}
+
 func (b *ASTBuilder) PushWhile(beg int) {
 	fl, fc := calcPosition(b.buffer, beg)
 	b.push(&While{position: &Position{fl, fc, 0, 0}})

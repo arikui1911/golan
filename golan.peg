@@ -12,6 +12,7 @@ statements <- (_ sp _ statement)* _ sp _
 
 statement <- (
 	expression _ comment? nl { p.PushExpressionStatement() } /
+    block { p.PopBlock() } /
 	while /
 	if
 )
