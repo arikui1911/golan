@@ -58,18 +58,9 @@ print(1)(2)()
 
 `
 
-	p := &golan.Parser{Buffer: src}
-	defer func() {
-		p.Recover(recover())
-		if p.Err() != nil {
-			log.Fatal(p.Err())
-		}
-	}()
-	p.Init()
-	p.ASTBuilderInit(p.Buffer)
-	if err := p.Parse(); err != nil {
-		p.Raise(err)
+	tree, err := golan.Parse(src)
+	if err != nil {
+		log.Fatal(err)
 	}
-	p.Execute()
-	golan.DumpTree(p.Finish(), os.Stdout)
+	golan.DumpTree(tree, os.Stdout)
 }
