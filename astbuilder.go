@@ -298,6 +298,13 @@ func (b *ASTBuilder) PushBooleanLiteral(beg int, end int, val bool) {
 	b.push(&BooleanLiteral{&Position{fl, fc, ll, lc}, val})
 }
 
+func (b *ASTBuilder) PushFloatLiteral(beg int, end int, src string) {
+	fl, fc := calcPosition(b.buffer, beg)
+	ll, lc := calcPosition(b.buffer, end-1)
+	f64, _ := strconv.ParseFloat(src, 64)
+	b.push(&FloatLiteral{&Position{fl, fc, ll, lc}, f64})
+}
+
 func (b *ASTBuilder) PushIntLiteral(beg int, end int, src string) {
 	fl, fc := calcPosition(b.buffer, beg)
 	ll, lc := calcPosition(b.buffer, end-1)

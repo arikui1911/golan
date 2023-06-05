@@ -33,4 +33,6 @@ func IsIntZero(v Value) bool {
 	return ok && i == 0
 }
 
+type Float float64
+
 type NativeFunction func(*Engine, []Value) (Value, error)

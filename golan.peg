@@ -77,8 +77,15 @@ primary <-
 	'(' _ sp _ expression _ sp _ ')' /
 	'true'		{ p.PushBooleanLiteral(begin, end, true) } /
 	'false'		{ p.PushBooleanLiteral(begin, end, false) } /
-	<[0-9]+>	{ p.PushIntLiteral(begin, end, text) } /
+	float 	/
+	integer /
 	identifier
+
+float <-
+	<('0' / [1-9][0-9]*) '.' [0-9]+ (('e' / 'E') ('+' / '-')? [0-9]+)?>
+	{ p.PushFloatLiteral(begin, end, text) }
+
+integer <- <'0' / [1-9][0-9]*>	{ p.PushIntLiteral(begin, end, text) }
 
 identifier <- <[_a-zA-Z][_a-zA-Z0-9]*>	{ p.PushIdentifier(begin, end, text) }
 
