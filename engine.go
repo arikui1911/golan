@@ -167,6 +167,8 @@ func (e *Engine) execNode(node Node) (Value, error) {
 			return nil, err
 		}
 		return Boolean(!ValueTest(v)), nil
+	case *BooleanLiteral:
+		return Boolean(n.Value), nil
 	case *IntLiteral:
 		return Integer(n.Value), nil
 	case *Identifier:

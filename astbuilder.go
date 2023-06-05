@@ -71,10 +71,10 @@ func (b *ASTBuilder) CompleteBlock(end int) {
 }
 
 func (b *ASTBuilder) PopBlock() {
-    block := b.pop().(*Block)
+	block := b.pop().(*Block)
 	current := b.pop().(*Block)
-    current.Add(block)
-    b.push(current)
+	current.Add(block)
+	b.push(current)
 }
 
 func (b *ASTBuilder) PushWhile(beg int) {
@@ -290,6 +290,12 @@ func (b *ASTBuilder) CompleteUnary() {
 	p.LastColumn = x.Position().LastColumn
 	u.(Unary).Complete(p, x)
 	b.push(u)
+}
+
+func (b *ASTBuilder) PushBooleanLiteral(beg int, end int, val bool) {
+	fl, fc := calcPosition(b.buffer, beg)
+	ll, lc := calcPosition(b.buffer, end-1)
+	b.push(&BooleanLiteral{&Position{fl, fc, ll, lc}, val})
 }
 
 func (b *ASTBuilder) PushIntLiteral(beg int, end int, src string) {

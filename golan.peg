@@ -75,6 +75,8 @@ funcall <- ( _
 
 primary <-
 	'(' _ sp _ expression _ sp _ ')' /
+	'true'		{ p.PushBooleanLiteral(begin, end, true) } /
+	'false'		{ p.PushBooleanLiteral(begin, end, false) } /
 	<[0-9]+>	{ p.PushIntLiteral(begin, end, text) } /
 	identifier
 

@@ -60,7 +60,7 @@ print(1)(2)()
 
 	src = `
 print(666 == 111 + 555, !0)
-print(1 < 2)
+print(1 < 2, 100, true, false)
 	`
 
 	tree, err := golan.Parse(src)

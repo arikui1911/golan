@@ -335,6 +335,18 @@ func (n *Not) dump(w io.Writer, lv int) {
 	n.Expression.dump(w, lv+1)
 }
 
+type BooleanLiteral struct {
+	position *Position
+	Value    bool
+}
+
+func (b *BooleanLiteral) Position() *Position { return b.position }
+
+func (b *BooleanLiteral) dump(w io.Writer, n int) {
+	indent(w, n)
+	fmt.Fprintf(w, "%T:%v: %v\n", b, b.position, b.Value)
+}
+
 type IntLiteral struct {
 	position *Position
 	Value    int64
