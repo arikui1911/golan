@@ -58,9 +58,22 @@ print(1)(2)()
 
 `
 
+	src = `
+print(666 == 111 + 555, !0)
+print(1 < 2)
+	`
+
 	tree, err := golan.Parse(src)
 	if err != nil {
 		log.Fatal(err)
 	}
 	golan.DumpTree(tree, os.Stdout)
+	engine := golan.NewEngine()
+	val, err := engine.Execute(tree)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !golan.IsUndefined(val) {
+		log.Println(val)
+	}
 }
