@@ -35,4 +35,9 @@ func IsIntZero(v Value) bool {
 
 type Float float64
 
+func IsFloat(v Value) bool {
+	_, ok := v.(Float)
+	return ok
+}
+
 type NativeFunction func(*Engine, []Value) (Value, error)

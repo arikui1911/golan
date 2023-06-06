@@ -61,6 +61,7 @@ print(1)(2)()
 	src = `
 print(666 == 111 + 555, !0, 0)
 print(1 < 2, 1.001E-3, true, false)
+print(1.23 * 4.56)
 	`
 
 	tree, err := golan.Parse(src)
