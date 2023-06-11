@@ -79,6 +79,7 @@ primary <-
 	'false'		{ p.PushBooleanLiteral(begin, end, false) } /
 	float 	/
 	integer /
+	string /
 	identifier
 
 float <-
@@ -86,6 +87,8 @@ float <-
 	{ p.PushFloatLiteral(begin, end, text) }
 
 integer <- <'0' / [1-9][0-9]*>	{ p.PushIntLiteral(begin, end, text) }
+
+string <- '"' <[^"]*> '"'	{ p.PushStringLiteral(begin, end, text) }
 
 identifier <- <[_a-zA-Z][_a-zA-Z0-9]*>	{ p.PushIdentifier(begin, end, text) }
 

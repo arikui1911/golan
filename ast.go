@@ -371,6 +371,18 @@ func (f *FloatLiteral) dump(w io.Writer, n int) {
 	fmt.Fprintf(w, "%T:%v: %v\n", f, f.position, f.Value)
 }
 
+type StringLiteral struct {
+	position *Position
+	Value    string
+}
+
+func (s *StringLiteral) Position() *Position { return s.position }
+
+func (s *StringLiteral) dump(w io.Writer, n int) {
+	indent(w, n)
+	fmt.Fprintf(w, "%T:%v: %#v\n", s, s.position, s.Value)
+}
+
 type Identifier struct {
 	position *Position
 	Name     string

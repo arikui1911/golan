@@ -40,4 +40,6 @@ func IsFloat(v Value) bool {
 	return ok
 }
 
+type String string
+
 type NativeFunction func(*Engine, []Value) (Value, error)

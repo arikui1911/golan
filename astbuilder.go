@@ -312,6 +312,12 @@ func (b *ASTBuilder) PushIntLiteral(beg int, end int, src string) {
 	b.push(&IntLiteral{&Position{fl, fc, ll, lc}, i64})
 }
 
+func (b *ASTBuilder) PushStringLiteral(beg int, end int, s string) {
+	fl, fc := calcPosition(b.buffer, beg)
+	ll, lc := calcPosition(b.buffer, end-1)
+	b.push(&StringLiteral{&Position{fl, fc, ll, lc}, s})
+}
+
 func (b *ASTBuilder) PushIdentifier(beg int, end int, src string) {
 	fl, fc := calcPosition(b.buffer, beg)
 	ll, lc := calcPosition(b.buffer, end-1)

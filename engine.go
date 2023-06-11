@@ -197,6 +197,8 @@ func (e *Engine) execNode(node Node) (Value, error) {
 		return Integer(n.Value), nil
 	case *FloatLiteral:
 		return Float(n.Value), nil
+	case *StringLiteral:
+		return String(n.Value), nil
 	case *Identifier:
 		v, ok := e.env[n.Name]
 		if !ok {
