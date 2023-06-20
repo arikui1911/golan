@@ -223,12 +223,26 @@ func (b *ASTBuilder) PushExpressionStatement() {
 	b.push(block)
 }
 
-func (b *ASTBuilder) PushAssign() {
+func (b *ASTBuilder) PushAssign(op string) {
 	r := b.pop()
 	l := b.pop()
 	p := &Position{
 		l.Position().FirstLineno, l.Position().FirstColumn,
 		r.Position().LastLineno, r.Position().LastColumn,
+	}
+	switch op {
+	case "":
+		// do nothing
+	case "+":
+		r = &Addition{p, l, r}
+	case "-":
+		r = &Subtraction{p, l, r}
+	case "*":
+		r = &Multiplication{p, l, r}
+	case "/":
+		r = &Division{p, l, r}
+	case "%":
+		r = &Modulo{p, l, r}
 	}
 	b.push(&Assign{p, l, r})
 }

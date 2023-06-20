@@ -69,8 +69,8 @@ x = hoge(piyo())
 n_lines = 0
 n_chars = 0
 while line = file_readline(stdin) {
-	n_lines = n_lines + 1
-	n_chars = n_chars + len(line)
+	n_lines += 1
+	n_chars += len(line)
 }
 print(format("%d lines, %d characters.", n_lines, n_chars))
 `

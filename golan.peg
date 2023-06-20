@@ -30,7 +30,13 @@ if <-
 
 expression <- assign / equality
 
-assign <- identifier _ '=' _ expression		{ p.PushAssign() }
+assign <-
+	identifier _ '=' _ expression		{ p.PushAssign("") }	/
+	identifier _ '+=' _ expression		{ p.PushAssign("+") }	/
+	identifier _ '-=' _ expression		{ p.PushAssign("-") }	/
+	identifier _ '*=' _ expression		{ p.PushAssign("*") }	/
+	identifier _ '/=' _ expression		{ p.PushAssign("/") }	/
+	identifier _ '%=' _ expression		{ p.PushAssign("%") }
 
 equality <- compare (
 	_ '==' _ compare	{ p.PushBinOp("==") } /
