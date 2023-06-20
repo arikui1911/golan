@@ -62,6 +62,7 @@ print(1)(2)()
 print(666 == 111 + 555, !0, 0)
 print(1 < 2, 1.001E-3, true, false)
 print(1.23 + 4.56, "Hello, " + "world!")
+x = hoge(piyo())
 	`
 
 	tree, err := golan.Parse(src)

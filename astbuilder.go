@@ -324,9 +324,19 @@ func (b *ASTBuilder) PushIdentifier(beg int, end int, src string) {
 	b.push(&Identifier{&Position{fl, fc, ll, lc}, src})
 }
 
+type incompleteApply struct {
+	position  *Position
+	function  Node
+	arguments []Node
+}
+
+func (a *incompleteApply) Position() *Position { return a.position }
+
+func (*incompleteApply) dump(o io.Writer, n int) { panic("incompleteApply is temprary node object") }
+
 func (b *ASTBuilder) PushApply() {
 	f := b.pop()
-	b.push(&Apply{
+	b.push(&incompleteApply{
 		position:  &Position{f.Position().FirstLineno, f.Position().FirstColumn, 0, 0},
 		function:  f,
 		arguments: []Node{},
@@ -334,11 +344,11 @@ func (b *ASTBuilder) PushApply() {
 }
 
 func (b *ASTBuilder) CompleteApply(end int) {
-	var a *Apply
+	var a *incompleteApply
 	buf := []Node{}
 	for {
 		x := b.pop()
-		if v, ok := x.(*Apply); ok {
+		if v, ok := x.(*incompleteApply); ok {
 			a = v
 			break
 		}
@@ -350,7 +360,11 @@ func (b *ASTBuilder) CompleteApply(end int) {
 	for i := 0; i < len(buf); i++ {
 		a.arguments = append(a.arguments, buf[len(buf)-1-i])
 	}
-	b.push(a)
+	b.push(&Apply{
+		position:  a.position,
+		function:  a.function,
+		arguments: a.arguments,
+	})
 }
 
 func calcPosition(src string, pos int) (int, int) {
