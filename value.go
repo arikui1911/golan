@@ -7,12 +7,14 @@ import (
 
 type Value interface{}
 
-func ValueTest(v Value) bool {
-	b, ok := v.(Boolean)
-	if !ok {
-		return true
+func ValueTest(val Value) bool {
+	switch v := val.(type) {
+	case Boolean:
+		return bool(v)
+	case Undefined:
+		return false
 	}
-	return bool(b)
+	return true
 }
 
 type CompareResult int
@@ -229,3 +231,8 @@ func (x String) OpAdd(other Value) (Value, error) {
 }
 
 type NativeFunction func(*Engine, []Value) (Value, error)
+
+type NativeValueHandle struct {
+	Info  string
+	Value any
+}

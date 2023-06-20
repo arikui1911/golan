@@ -1,7 +1,10 @@
 package golan
 
 import (
+	"bufio"
 	"fmt"
+	"io"
+	"os"
 )
 
 type Engine struct {
@@ -16,6 +19,54 @@ func NewEngine() *Engine {
 					fmt.Println(v)
 				}
 				return Undefined{}, nil
+			}),
+			"file_readline": NativeFunction(func(e *Engine, args []Value) (Value, error) {
+				if len(args) != 1 {
+					return nil, fmt.Errorf("wrong number of arguments (given %d, expected 1)", len(args))
+				}
+				h, ok := args[0].(*NativeValueHandle)
+				if !ok || h.Info != "File" {
+					return nil, fmt.Errorf("not a NativeValueHandle(File) - %v(%T)", args[0], args[0])
+				}
+				line, err := h.Value.(*bufio.Reader).ReadString('\n')
+				switch err {
+				case nil:
+					return String(line), nil
+				case io.EOF:
+					if len(line) == 0 {
+						return Undefined{}, nil
+					}
+					return String(line), nil
+				}
+				return nil, err
+			}),
+			"stdin": &NativeValueHandle{
+				Info:  "File",
+				Value: bufio.NewReader(os.Stdin),
+			},
+			"len": NativeFunction(func(e *Engine, args []Value) (Value, error) {
+				if len(args) != 1 {
+					return nil, fmt.Errorf("wrong number of arguments (given %d, expected 1)", len(args))
+				}
+				s, ok := args[0].(String)
+				if !ok {
+					return nil, fmt.Errorf("not a String - %v(%T)", args[0], args[0])
+				}
+				return Integer(len(s)), nil
+			}),
+			"format": NativeFunction(func(e *Engine, args []Value) (Value, error) {
+				if len(args) < 1 {
+					return nil, fmt.Errorf("wrong number of arguments (given %d, expected 1..)", len(args))
+				}
+				s, ok := args[0].(String)
+				if !ok {
+					return nil, fmt.Errorf("not a String - %v(%T)", args[0], args[0])
+				}
+				vals := []any{}
+				for _, v := range args[1:] {
+					vals = append(vals, v)
+				}
+				return String(fmt.Sprintf(string(s), vals...)), nil
 			}),
 		},
 	}
