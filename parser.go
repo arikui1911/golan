@@ -1,6 +1,11 @@
 package golan
 
+import "strings"
+
 func Parse(src string) (tree Node, err error) {
+	if !strings.HasSuffix(src, "\n") {
+		src += "\n"
+	}
 	p := &Parser{Buffer: src}
 	defer func() {
 		p.Recover(recover())

@@ -75,6 +75,8 @@ while line = file_readline(stdin) {
 print(format("%d lines, %d characters.", n_lines, n_chars))
 `
 
+	src = `print()`
+
 	tree, err := golan.Parse(src)
 	if err != nil {
 		log.Fatal(err)
